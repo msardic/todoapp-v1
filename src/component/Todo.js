@@ -1,44 +1,46 @@
-import React, { useState } from "react";
+import React from "react";
+
 import "./Todo.css";
 
-function TodoList() {
-  const [task, settask] = useState("");
+const TodoList = () => {
+  const [inputValue, setInputValue] = React.useState("");
+  const [taskList, setTaskList] = React.useState([]);
 
-  const [taskList, setTasklist] = useState([]);
+  const addTask = () => {
+    if (!inputValue) return;
 
-  const handleChange = (e) => {
-    settask(e.target.value);
-  };
-
-  const AddTask = () => {
-    if (task !== "") {
-      const taskDetails = {
-        id: Math.floor(Math.random() * 1000),
-        value: task,
-        isDone: false,
-      };
-      setTasklist([...taskList, taskDetails]);
-    }
-  };
-
-  const deletetask = (e, id) => {
-    e.preventDefault();
-    setTasklist(taskList.filter((task) => task.id != id));
-  };
-
-  const taskCompleted = (e, id) => {
-    e.preventDefault();
-
-    const element = taskList.findIndex((elem) => elem.id == id);
-
-    const newTaskList = [...taskList];
-
-    newTaskList[element] = {
-      ...newTaskList[element],
-      isCompleted: true,
+    const newTask = {
+      id: Math.floor(Math.random() * 1000),
+      value: inputValue,
+      isDone: false,
     };
 
-    setTasklist(newTaskList);
+    const cloneTaskList = [...taskList];
+
+    cloneTaskList.push(newTask);
+    setTaskList(cloneTaskList);
+    setInputValue("");
+  };
+
+  const onDeleteTask = (id) => {
+    const deletedItemIndex = taskList.findIndex((task) => task.id === id);
+    if (deletedItemIndex === -1) return;
+
+    const cloneTaskList = [...taskList];
+    cloneTaskList.splice(deletedItemIndex, 1);
+
+    setTaskList(cloneTaskList);
+  };
+
+  const onChangeTaskStatus = (id) => {
+    const changedItemIndex = taskList.findIndex((task) => task.id === id);
+
+    if (changedItemIndex === -1) return;
+
+    const cloneTaskList = [...taskList];
+    cloneTaskList[changedItemIndex].isDone = true;
+
+    setTaskList(cloneTaskList);
   };
 
   return (
@@ -48,30 +50,37 @@ function TodoList() {
           type="text"
           name="text"
           id="text"
-          onChange={(e) => handleChange(e)}
+          value={inputValue}
+          onChange={(e) => {
+            setInputValue(e.target.value);
+          }}
           placeholder="görev ekle"
         />
-        <button onClick={AddTask}>ekle</button>
+        <button onClick={addTask}>ekle</button>
       </div>
       <div>
-        {taskList !== [] ? (
+        {taskList.length > 0 && (
           <ul>
-            {taskList.map((t) => (
-              <div>
-                <li className={t.isCompleted ? "doneItem" : "listItem"}>
-                  {t.value}
+            {taskList.map((task, index) => (
+              <div key={index.toString()}>
+                <li className={task.isDone ? "doneItem" : "listItem"}>
+                  {task.value}
                 </li>
-                <button onClick={(e) => taskCompleted(e, t.id)}>
+                <button
+                  onClick={() => {
+                    onChangeTaskStatus(task.id);
+                  }}
+                >
                   tamamlandı
                 </button>
-                <button onClick={(e) => deletetask(e, t.id)}>sil</button>
+                <button onClick={onDeleteTask.bind(this, task.id)}>sil</button>
               </div>
             ))}
           </ul>
-        ) : null}
+        )}
       </div>
     </>
   );
-}
+};
 
 export default TodoList;
